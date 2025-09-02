@@ -38,11 +38,17 @@ const Details = () => {
             <Link to={"/"} className="text-teal-600 font-medium border border-teal-600 px-3 py-2">Back</Link>
          </div>
          <div className='border-t-4 border-t-teal-600 shadow-lg p-3 mt-4'>
+          {
+            note.cover_image && (
+              <img src={`${import.meta.env.VITE_API}/${note.cover_image}`}
+              alt={note.title} className="my-10 h-64 w-full object-cover"/>
+            )
+          }
             <h3 className='text-3xl font-medium'>{note.title}</h3>
             <div className="flex gap-4 my-2 ">
-            <p className="flex items-center gap-2 font-medium text-gray-600">
+             <p className="flex items-center gap-2 font-medium text-gray-600">
               <UserIcon className="w-5 h-5"/>{note.creator}
-            </p>
+             </p>
               {
                 note.createdAt && (<p className="flex items-center gap-2 font-medium text-gray-600">
                 <CalendarDaysIcon className="w-5 h-5"/>{formatISO9075(new Date(note.createdAt),{representation: "date"})}</p>

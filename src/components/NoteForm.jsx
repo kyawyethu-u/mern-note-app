@@ -1,18 +1,22 @@
-import { ArrowLeftIcon } from "@heroicons/react/16/solid"
+import { ArrowLeftIcon, ArrowUpTrayIcon } from "@heroicons/react/16/solid"
 import { Link , Navigate, useParams} from "react-router-dom"
+
 import { Formik, Field, Form } from 'formik';
 import * as Yup from 'yup';
 
 //Formik Custom error message
 import StyledErrorMessage from "./StyledErrorMessage";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const NoteForm = ({isCreate}) => {
+const NoteForm = ({isCreate = false}) => {
     const [redirect,setRedirect]= useState(false);
-    const [oldNote,setOldNote] = useState({})
+    const [oldNote,setOldNote] = useState({});
+    const [previewImage,setPreviewImage] = useState("");
+    const [isUpload,setIsUpload] = useState(false);
+    const fileRef = useRef()
 
     const {id} = useParams();
 
@@ -25,7 +29,6 @@ const NoteForm = ({isCreate}) => {
             setRedirect(true);
         }
     }
-
     useEffect(_=>{
         if(!isCreate){
             getOldNote()
@@ -36,6 +39,7 @@ const NoteForm = ({isCreate}) => {
         title: isCreate ? "" : oldNote.title,
         content: isCreate ? "" : oldNote.content,
         note_id: isCreate ? "" : oldNote._id,
+        cover_image : isCreate ? null : oldNote.cover_image
     }
     // const validate = (values) =>{
     //     //values == initialValues
@@ -48,6 +52,8 @@ const NoteForm = ({isCreate}) => {
     //     }
     //     return errors;
     // }
+    const SUPPORTED_FORMATS = ["image/png","image/jpg","image/jpeg"];
+
     const NoteFormSchema = Yup.object({
         title: Yup.string()
            .min(3,"Title is too short")
@@ -55,8 +61,22 @@ const NoteForm = ({isCreate}) => {
            .required("Title is required."),
         content: Yup.string()
             .min(5,"Content is too short")
-            .required("Content is required.")   
+            .required("Content is required."),
+        cover_image: Yup.mixed().nullable().test("FILE_FORMAT",
+            "File type is not support",(value)=>!value || SUPPORTED_FORMATS.includes(value.type))
     })
+    const handleImageChange=(event,setFieldValue)=>{
+        const selectedImage = event.target.files[0];
+        if(selectedImage){
+            setPreviewImage(URL.createObjectURL(selectedImage));
+            setFieldValue("cover_image",selectedImage)
+        }
+    }
+    const clearPreviewImage = (setFieldValue)=>{
+        setPreviewImage(null)
+        setFieldValue("cover_image",null)
+        fileRef.current.value = ""
+    }
      
     const submitHandler = async(values) =>{
         let API = `${import.meta.env.VITE_API}`;
@@ -68,12 +88,15 @@ const NoteForm = ({isCreate}) => {
             API = `${import.meta.env.VITE_API}/edit`,
             method = "put"
         }
+            const formData = new FormData();
+            formData.append("title",values.title);    
+            formData.append("content",values.content);
+            formData.append("cover_image",values.cover_image);
+            formData.append("note_id",values.note_id)
+
             const response = await fetch(API,{
                 method,
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(values)
+                body: formData
             })
             if(response.status === 201 || response.status === 200){
                 setRedirect(true)
@@ -118,21 +141,61 @@ const NoteForm = ({isCreate}) => {
                 onSubmit={submitHandler}
                 enableReinitialize={true}>
             {
-                ({errors,touched})=>(
-            <Form>
+                ({errors,touched,values,setFieldValue})=>(
+            <Form encType="multipart/form-data">
             <div className="mb-3">
                 <label htmlFor="title" className="font-medium block">Note title</label>
                 <Field type="text" name="title" id="title"
-                className="text-lg border-2 border-teal-600 py-1 w-full rounded-lg"/>
+                className="text-lg border-2 border-teal-600 py-2 w-full rounded-lg "/>
                 <StyledErrorMessage name="title"/>
             </div>
-            <div className="">
+            <div className="mb-3">
                 <label htmlFor="content" className="font-medium block">Content</label>
                 <Field as="textarea" rows={4} type="text" name="content" id="content"
                 className="text-lg border-2 border-teal-600 py-1 w-full rounded-lg"/>
                 <StyledErrorMessage name="content"/>
             </div>
-            <Field type="text" name="note-id" id="note_id" hidden/>
+            <div className="mb-3">
+                <div className="flex items-center justify-between">
+                    <label htmlFor="cover_image" className="font-medium block">Cover Image
+                        <span className="text-xs font-medium">optional</span>
+                    </label>
+                    {
+                        previewImage && (<p className="text-base font-medium text-teal-600 cursor-pointer"
+                        onClick={_=>{clearPreviewImage(setFieldValue)}}>Clear</p>)
+                    }
+            </div>
+                    {
+                        isUpload ? (<p className="text-base font-medium text-teal-600 cursor-pointer"
+                        onClick={(_)=>setIsUpload(false)}>disable cover image</p>):
+                        (<p className="text-base font-medium text-teal-600 cursor-pointer"
+                        onClick={(_)=>setIsUpload(true)}>upload cover image</p>
+                        )
+                    }
+                {
+                    isUpload && (
+                <>
+                     <input type="file" name="cover_image" hidden ref={fileRef} onChange={(e)=>{handleImageChange(e,setFieldValue)}}/>
+                    <div className="border border-teal-600 border-dashed flex items-center justify-center 
+                                text-teal-600 h-60 cursor-pointer rounded-lg relative overflow-hidden" onClick={()=>{
+                                    fileRef.current.click();
+                                }} >
+                    <ArrowUpTrayIcon width={30} height={30} className="z-20"/>
+                    {
+                    isCreate ?(<>
+                    {
+                    previewImage && (<img src={previewImage} alt={"preview"} 
+                        className="w-full absolute top-0 left-0 h-full object-cover opacity-80 z-10"/>)
+                    }</>):(
+                    <img src={previewImage ? previewImage : `${import.meta.env.VITE_API}/${oldNote.cover_image}`} alt={"preview"} 
+                        className="w-full absolute top-0 left-0 h-full object-cover opacity-80 z-10"/>
+                    )
+                    }
+                    </div>
+                </>
+                )}
+                <StyledErrorMessage name="cover_image"/>
+            </div>
             <button className="text-white bg-teal-600 py-3 font-medium w-full text-center"
             type="submit">
                 {isCreate ? "Save Note" : "Update Note"}
