@@ -4,6 +4,8 @@ import Create from "./pages/Create"
 import Edit from "./pages/Edit"
 import Index from "./pages/Index"
 import Details from "./pages/Details"
+import Login from "./pages/Login"
+import Register from "./pages/Register"
 
 const App = () => {
   const router = createBrowserRouter([
@@ -26,6 +28,14 @@ const App = () => {
         {
           path: "/notes/:id",
           element: <Details/>
+        },
+        {
+          path: "/login",
+          element: <Login/>
+        },
+        {
+          path: "/register",
+          element: <Register/>
         }
       ]
     }

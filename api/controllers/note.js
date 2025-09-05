@@ -6,8 +6,16 @@ const Note = require("../models/note")
 const {unlink} = require("../utils/unlink")
 
 exports.getNotes = (req,res,next)=>{
-    Note.find().sort({createdAt : -1}).then(notes=>{
-        return res.status(200).json(notes)
+    const currentPage = req.query.page || 1 ;
+    const perPage = 6;
+    let totalNotes;
+    let totalPages;
+    Note.find().countDocuments().then(counts =>{
+        totalNotes = counts;
+        totalPages = Math.ceil(totalNotes / perPage);
+        return  Note.find().sort({createdAt : -1}).skip((currentPage -1) * perPage).limit(perPage);
+    }).then((notes)=>{
+        return res.status(200).json({notes,totalNotes,totalPages});
     }).catch(err=>{
         console.log(err)
         return res.status(404).json({
@@ -61,7 +69,7 @@ exports.deleteNote = (req,res,next) =>{
     Note.findById(id).then((note)=>{
         unlink(note.cover_image);
         return Note.findByIdAndDelete(id).then(_=>{
-            return res.status(204).json({
+           return res.status(204).json({
             message: "Note deleted"
         })
     })

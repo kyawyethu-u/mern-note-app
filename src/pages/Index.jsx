@@ -8,20 +8,33 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const Index = () => {
-  const [notes,setNotes] = useState();
+  const [notes,setNotes] = useState([]);
   const [loading,setLoading] = useState(false);
+  const [currentPage,setCurrentPage] = useState(1)
+  const [totalPage,setTotalPage] = useState(1);
 
-  const getNotes = async()=>{
+  const getNotes = async(pageNum)=>{
       setLoading(true)
-      const response = await fetch(`${import.meta.env.VITE_API}/notes`)
-      const notes = await response.json()
+      const response = await fetch(`${import.meta.env.VITE_API}/notes?page=${pageNum}`)
+      const {notes,totlaNotes,totalPages} = await response.json()
+      setTotalPage(totalPages)
       setNotes(notes)
       setLoading(false)
   };
   useEffect(_=>{
-    getNotes()
-  },[])
+    getNotes(currentPage)
+  },[currentPage]);
 
+  const handlePrev = () =>{
+    if(currentPage > 1){
+      setCurrentPage(currentPage - 1)
+    }
+  }
+  const handleNext = () =>{
+    if(currentPage < totalPage){
+      setCurrentPage(currentPage + 1)
+    }
+  }
   const customAlert = (message) =>{
     toast.success(message,{
           position: "top-center",
@@ -34,14 +47,25 @@ const Index = () => {
           theme: "light",
           });
   }
+   
   return (
     <section className='flex gap-6 px-10 mt-10 flex-wrap mx-auto w-full justify-center'>
       {
         !loading && notes?.length > 0 ? (<>
-        {
-        notes?.map(note =>(
-        <Note key={note._id} note={note} getNotes={getNotes} customAlert={customAlert}/>))
-        }
+          {
+          notes?.map(note =>(
+          <Note key={note._id} note={note} getNotes={getNotes} customAlert={customAlert}/>))
+          }
+          <div className='w-full flex items-center justify-center gap-3'>
+            {
+            currentPage > 1 && (<button type="button" className='text-white font-medium bg-teal-600 px-3 py-1'
+            onClick={handlePrev}>Prev Page</button>)
+            }
+            {
+            currentPage < totalPage && (<button type="button" className='text-white font-medium bg-teal-600 px-3 py-1'
+            onClick={handleNext}>Next Page</button>)
+            }
+          </div>
       </>) : (
       <div className='flex justify-center items-center w-full'>
         <ThreeCircles
