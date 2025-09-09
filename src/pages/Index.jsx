@@ -35,9 +35,10 @@ const Index = () => {
       setCurrentPage(currentPage + 1)
     }
   }
-  const customAlert = (message) =>{
-    toast.success(message,{
-          position: "top-center",
+  const customAlert = (message,error = false) =>{
+    if(error){
+      toast.error(message,{
+          position: "top-right",
           autoClose: 5000,
           hideProgressBar: false,
           closeOnClick: false,
@@ -46,6 +47,18 @@ const Index = () => {
           progress: undefined,
           theme: "light",
           });
+    }else{
+       toast.success(message,{
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          });
+    }
   }
    
   return (
@@ -69,14 +82,17 @@ const Index = () => {
       </>) : (
       <div className='flex justify-center items-center w-full'>
         <ThreeCircles
-      visible={true}
-      height="100"
-      width="100"
+      visible={loading}
+      height="80"
+      width="80"
       color="#4fa94d"
       ariaLabel="three-circles-loading"
       wrapperStyle={{}}
       wrapperClass=""
       />
+      {
+        !loading && notes.length === 0 && <p>Notes are not created yet!</p>
+      }
       </div>)
       }
        <ToastContainer

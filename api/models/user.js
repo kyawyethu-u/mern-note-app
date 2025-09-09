@@ -15,10 +15,6 @@ const userSchema = new Schema(
         password: {
             type: String,
             require: true,
-        },
-        notes: {
-            type: Schema.Types.ObjectId,
-            ref: "Note"
         }
     }
 )

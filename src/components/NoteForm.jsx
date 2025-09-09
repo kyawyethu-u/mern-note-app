@@ -6,12 +6,14 @@ import * as Yup from 'yup';
 
 //Formik Custom error message
 import StyledErrorMessage from "./StyledErrorMessage";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
+import { UserContext } from "../contexts/UserContext";
 
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const NoteForm = ({isCreate = false}) => {
+    const {token} = useContext(UserContext);
     const [redirect,setRedirect]= useState(false);
     const [oldNote,setOldNote] = useState({});
     const [previewImage,setPreviewImage] = useState("");
@@ -21,7 +23,11 @@ const NoteForm = ({isCreate = false}) => {
     const {id} = useParams();
 
     const getOldNote = async() =>{
-        const response = await fetch(`${import.meta.env.VITE_API}/edit/${id}`)
+        const response = await fetch(`${import.meta.env.VITE_API}/edit/${id}`,
+            {headers : 
+                {Authorization: `Barer ${token.token}`}
+            }
+        )
         if(response.status === 200){
             const note= await response.json();
             setOldNote(note);
@@ -96,7 +102,10 @@ const NoteForm = ({isCreate = false}) => {
 
             const response = await fetch(API,{
                 method,
-                body: formData
+                body: formData,
+                headers: {
+                    Authorization : `Bearer ${token.token}`
+                }
             })
             if(response.status === 201 || response.status === 200){
                 setRedirect(true)

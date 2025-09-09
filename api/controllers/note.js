@@ -17,7 +17,7 @@ exports.getNotes = (req,res,next)=>{
     }).then((notes)=>{
         return res.status(200).json({notes,totalNotes,totalPages});
     }).catch(err=>{
-        console.log(err)
+         console.log(err);
         return res.status(404).json({
             message: "Something went wrong!"
         })
@@ -38,13 +38,14 @@ exports.createNotes = (req,res,next) =>{
     Note.create({
         title,
         content,
-        cover_image: cover_image ? cover_image.path : ""
+        cover_image: cover_image ? cover_image.path : "",
+        creator: req.userId
     }).then(_=>{
         return res.status(201).json({
         message: "Note created",
     })
     }).catch(err=>{
-        console.log(err)
+         console.log(err);
         return res.status(404).json({
             message: "Something went wrong!"
         })
@@ -53,8 +54,7 @@ exports.createNotes = (req,res,next) =>{
 
 exports.getNote= (req,res,next) =>{
     const {id} = req.params;
- 
-    Note.findById(id).then((note)=>{
+    Note.findById(id).populate("creator","username").then((note)=>{
        return res.status(200).json(note)
     }).catch((err)=>{
         console.log(err);
@@ -67,13 +67,19 @@ exports.getNote= (req,res,next) =>{
 exports.deleteNote = (req,res,next) =>{
     const {id} = req.params;
     Note.findById(id).then((note)=>{
-        unlink(note.cover_image);
+        if(note.creator.toString() !== req.userId){
+            return res.status(401).json("Auth failed!")
+        }
+        if(note.cover_image){
+            unlink(note.cover_image);
+        }
         return Note.findByIdAndDelete(id).then(_=>{
            return res.status(204).json({
             message: "Note deleted"
         })
     })
     }).catch((err)=>{
+         console.log(err);
         res.status(404).json({
             message: "Something went wrong"
         })
@@ -83,8 +89,12 @@ exports.deleteNote = (req,res,next) =>{
 exports.getOldNote =(req,res,next) =>{
     const {id} = req.params;
     Note.findById(id).then((note)=>{
+        if(note.creator.toString() !== req.userId){
+            return res.status(401).json("Auth failed")
+        }
         return res.status(200).json(note);
     }).catch((err)=>{
+         console.log(err);
         res.status(404).json({
             message: "Something went wrong!"
         })})
@@ -94,10 +104,15 @@ exports.updateNote=(req,res,next) =>{
     const {note_id,title,content} = req.body;
     const cover_image = req.file;
     Note.findById(note_id).then((note)=>{
+        if(note.creator.toString() !== req.userId){
+            return res.status(401).json("Auth failed!")
+        }
         note.title = title;
         note.content = content;
         if(cover_image){
-            unlink(note.cover_image);
+            if(note.cover_image){
+                unlink(note.cover_image);
+            }
             note.cover_image = cover_image.path;
         }
        return note.save();
@@ -107,7 +122,7 @@ exports.updateNote=(req,res,next) =>{
        })
     })
     .catch((err)=>{
-        console.log(err)
+         console.log(err);
         res.status(404).json({
             message: "Something went wrong!",
         })

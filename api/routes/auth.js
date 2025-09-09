@@ -4,6 +4,8 @@ const {body} = require("express-validator")
 
 const authController = require("../controllers/auth")
 
+const authMiddleware = require("../middlewares/is-auth")
+
 const User = require("../models/user")
 
 //POST /register
@@ -36,5 +38,8 @@ router.post("/login",[
                 }),
         body("password").trim().isLength({min: 5}).withMessage("Password is too short")
 ],authController.login)
+
+//GET /status
+router.get("/status",authController.checkStatus)
 
 module.exports = router;

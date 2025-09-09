@@ -6,10 +6,13 @@ import "react-toastify/dist/ReactToastify.css"
 
 //formik custom error message
 import StyledErrorMessage from "./StyledErrorMessage"
-import { useState } from "react"
+import { useContext, useState } from "react"
 import { Navigate } from "react-router-dom"
 
+import { UserContext } from "../contexts/UserContext" 
+
 const AuthForm = ({isLogin}) => {
+    const {updateToken} = useContext(UserContext);
     const [redirect,setRedirect] = useState(false)
     const initialValues ={
         username : "",
@@ -53,10 +56,14 @@ const AuthForm = ({isLogin}) => {
                     });
             }
             const responseData = await response.json();
-            console.log(responseData);
             
-            if(response.status === 201 || response.status === 200 ) {
+            
+            if(response.status === 201) {
                 setRedirect(true)
+            }else if(response.status === 200 ){
+                setRedirect(true)
+                updateToken(responseData)
+
             }else if(response.status === 400){
                 const pickedMessage = responseData.errorMessages[0].msg;
                 toastFire(pickedMessage);

@@ -7,6 +7,8 @@ import Details from "./pages/Details"
 import Login from "./pages/Login"
 import Register from "./pages/Register"
 
+import isLoginLoader from "./utils/isLogin"
+
 const App = () => {
   const router = createBrowserRouter([
     {
@@ -20,10 +22,12 @@ const App = () => {
         {
           path: "/create",
           element: <Create/>,
+          loader : isLoginLoader
         },
         {
           path: "/edit/:id",
           element: <Edit/>,
+          loader : isLoginLoader
         },
         {
           path: "/notes/:id",
