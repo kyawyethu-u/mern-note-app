@@ -2,7 +2,7 @@ import { EyeIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/16/solid'
 
 import { useContext } from 'react';
 
-import { Link } from 'react-router-dom'
+import { Link, redirect } from 'react-router-dom'
 import { formatISO9075 } from "date-fns";
 
 import {UserContext}  from "../contexts/UserContext"
@@ -10,7 +10,25 @@ import {UserContext}  from "../contexts/UserContext"
 const Note = ({note,getNotes,customAlert}) => {
   const {token} = useContext(UserContext);
   const {_id,title,content,createdAt} = note;
-  
+
+  const handleDeleteNote = async() =>{
+    const localToken = JSON.parse(localStorage.getItem("token"))
+    if(!localToken){
+      window.location.reload(false)
+    }
+    const response = await fetch(`${import.meta.env.VITE_API}/status`,{
+      headers: {
+        Authorization: `Barer ${localToken.token}`
+      }
+    })
+    if(response.status===401){
+      localStorage.setItem("token",null)
+      window.location.reload(false)
+    }else{
+      deleteNote();
+    }
+
+  }
   const deleteNote = async() =>{
     const response = await fetch(`${import.meta.env.VITE_API}/delete/${_id}`,{
       method: "delete",
@@ -37,7 +55,7 @@ const Note = ({note,getNotes,customAlert}) => {
                   token && (<>
                     {
                       note.creator.toString() === token.userId && (<>
-                      <TrashIcon width={20} className='text-red-600 cursor-pointer' onClick={deleteNote}/>
+                      <TrashIcon width={20} className='text-red-600 cursor-pointer' onClick={handleDeleteNote}/>
                       <Link to={"/edit/"+ _id}><PencilSquareIcon width={20} className='text-teal-600'/></Link>
                       </>)
                     }

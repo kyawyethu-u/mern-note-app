@@ -29,7 +29,8 @@ const AuthForm = ({isLogin}) => {
             .min(5,"Password is too short")
             
     })
-
+   
+    
     const submitHandler = async (values) =>{
         const {username,email,password} = values;
         let END_POINT = `${import.meta.env.VITE_API}/register`;
@@ -93,7 +94,7 @@ const AuthForm = ({isLogin}) => {
             validationSchema={AuthFormSchema}
             onSubmit={submitHandler}>
         {
-            ()=>(<Form className="w-1/2 mx-auto">
+            ({isSubmitting})=>(<Form className="w-1/2 mx-auto">
                 <h1 className="text-center font-bold text-3xl text-teal-600 my-4">{isLogin ? "Login" : "Register"}</h1>
                 {
                     !isLogin && (<div className="mb-3">
@@ -128,8 +129,9 @@ const AuthForm = ({isLogin}) => {
                     <StyledErrorMessage name="password"/>  
                 </div>
                 <button className="text-white bg-teal-600 py-3 font-medium w-full text-center"
-                  type="submit">
-                  {isLogin ? "Login" : "Register"}
+                  type="submit" disabled={isSubmitting}>
+                  {isLogin ? `${isSubmitting ?"Submitting ...":"Login"}` :
+                   `${isSubmitting ? "Submitting...":"Register"}`}
                 </button>
             </Form>)
         }

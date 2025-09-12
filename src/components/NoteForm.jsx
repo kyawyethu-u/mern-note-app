@@ -150,7 +150,7 @@ const NoteForm = ({isCreate = false}) => {
                 onSubmit={submitHandler}
                 enableReinitialize={true}>
             {
-                ({errors,touched,values,setFieldValue})=>(
+                ({errors,touched,values,setFieldValue,isSubmitting})=>(
             <Form encType="multipart/form-data">
             <div className="mb-3">
                 <label htmlFor="title" className="font-medium block">Note title</label>
@@ -206,8 +206,9 @@ const NoteForm = ({isCreate = false}) => {
                 <StyledErrorMessage name="cover_image"/>
             </div>
             <button className="text-white bg-teal-600 py-3 font-medium w-full text-center"
-            type="submit">
-                {isCreate ? "Save Note" : "Update Note"}
+            type="submit" disabled={isSubmitting}>
+                {isCreate ? `${isSubmitting ? "Uploading..." : "Save Note"}`: 
+                `${isSubmitting ? "Updating..." :"Update Note"}`}
             </button>
             </Form>
                 )

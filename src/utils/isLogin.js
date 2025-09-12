@@ -12,7 +12,9 @@ const isLogin =async()=>{
     })
     
     if(response.status === 401){
-        return redirect("/");
+      localStorage.setItem("token",null)
+      window.location.reload(false)
+        return redirect("/login");
     }else{
         return null;
     }

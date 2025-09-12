@@ -7,7 +7,6 @@ import {UserContext} from "../contexts/UserContext"
 const Nav = () => {
   const {token,updateToken} = useContext(UserContext)
   
-  
   const logoutHandler = () =>{
       updateToken(null)
   }
